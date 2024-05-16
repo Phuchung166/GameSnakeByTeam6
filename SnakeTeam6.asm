@@ -7,7 +7,7 @@ snake dw 0Dh,0Ch,0Bh,0Ah, 150 dup(?)   ;(X0,Y0),(X1,Y1)...  ; dat bo nho cho con
 s_size  db     4,0       ; size of the snake                           ; de khong ghi de len cac bien khac
 ;mang s_size 2 phan tu 4 va 0
                                                                           ; variables
-tail    dw      ?       ;; toa do cua duoi truoc dó  (byte thap X, byte cao Y)
+tail    dw      ?       ;; toa do cua duoi truoc d?  (byte thap X, byte cao Y)
 
 ; Hang so huong di   
 ;  (ma phim BIOS):      Keyboard scan codes 
@@ -26,11 +26,32 @@ mealX  db  ?
 mealY  db  ?
 
 ; Diem so
-score db '0','0','0','0','$'
+score db '0','0','0','0','$' 
 
+len   db 18h
+xuong db 19h
+phai  db 1Ah
+trai  db 1Bh
+
+; instruction 
+msg db 3 dup(0ah),15 dup(20h)
+ db             "                 ", 0dh,0ah
+ db 15 dup(20h),"                       ", 0dh,0ah       
+ db 15 dup(20h),"                   SNAKE GAME   ", 0dh,0ah ,0ah,0ah
+ db 11 dup(20h),"This is the screen eating snake game...  ", 0dh,0ah
+ db 11 dup(20h),"You can control the snake using arrow keys on your keyboard:  ", 0dh,0ah,,10
+ db 25 dup(20h),18h, " : Move up ", 0dh,0ah
+ db 25 dup(20h),19h, " : Move down                                    ", 0dh,0ah
+ db 25 dup(20h),01ah," : Move right                   ", 0dh,0ah
+ db 25 dup(20h),01Bh," : Move left                    ", 0dh,0ah,10
+ db 15 dup(20h),"      This game is done by: Nh",0A2h,"m 06                    ", 0dh,0ah
+ db 15 dup(20h),"      Press any key to continue...     $"   
+ 
+  
 ; Tin nhan bat dau
-msgstart db 5 dup(0ah),15 dup(20h)
- db             "  _______ _             _____             _         ", 0dh,0ah
+msgstart db 20 dup(0ah),15 dup(20h)     
+ db             "                                                    ", 0dh,0ah
+ db 15 dup(20h),"  _______ _             _____             _         ", 0dh,0ah
  db 15 dup(20h)," |__   __| |           / ____|           | |        ", 0dh,0ah       
  db 15 dup(20h),"    | |  | |__   ___  | (___  _ __   __ _| | _____  ", 0dh,0ah
  db 15 dup(20h),"    | |  | '_ \ / _ \  \___ \| '_ \ / _` | |/ / _ \ ", 0dh,0ah
@@ -41,11 +62,8 @@ msgstart db 5 dup(0ah),15 dup(20h)
  db 15 dup(20h)," | | |_ |/ _` | '_ ` _ \ / _ \ |                    ", 0dh,0ah
  db 15 dup(20h)," | |__| | (_| | | | | | |  __/_|                    ", 0dh,0ah
  db 15 dup(20h),"  \_____|\__,_|_| |_| |_|\___(_)                    ", 0dh,0ah,0ah
- db 25 dup(20h),"    Press Enter to start.                             $"  
- 
- 
- 
-   
+ db 25 dup(20h),"    Press Enter to start.                           ", 10,10,10,,10,10,10,10,10,"$"  
+  
 
 ; Tin nhan ket thuc
 msgover db  5 dup(0ah),15 dup(20h)
@@ -56,8 +74,17 @@ msgover db  5 dup(0ah),15 dup(20h)
  db  30 dup(20h),"   Your score is : $", 0dh,0ah
                                                     
 
-
-.code  
+.code      
+    mov dx, offset msg    ;;
+    mov ah, 9 
+    int 21h   
+    
+    mov ah, 00h
+    int 16h
+    
+    xor ax,ax
+    xor dx,dx
+    
     mov dx, offset msgstart     ;;
     mov ah, 9 
     int 21h    
@@ -149,9 +176,7 @@ hide_old_tail:           ;An phan duoi cu
     mov     ah, 02h
     int     10h
     
-    ; In ra khoang trang tai vi tri cua tail => da xoa old_tail
-
-    
+    ; In ra khoang trang tai vi tri cua tail => da xoa old_tail   
     mov     al, ' '
     mov     ah, 09h
     mov     cx, 1   ; In mot ky tu khoang trang.
@@ -186,10 +211,8 @@ ret
 ; ------ Cac ham ------
 
 move_snake proc
-
-;  
-  ; con tro DI tro den duoi
   
+  ; con tro DI tro den duoi 
   mov   di,w.s_size     ; DI luu gia tri (s_size-1)*2
   add di,w.s_size
   sub di,2
@@ -277,8 +300,6 @@ stop_move:                ; Moi lan chuong trinh move_snake chi dich chuyen ran 
   ret  
   
 move_snake endp
-
-
               
               
 randomizeMeal proc near     ;;===== make new food
@@ -323,7 +344,7 @@ no_overwrite_snake:   ; Khong ghi de len snake
     ; Cac thao tac do hoa tiep theo se duoc thuc hien tren trang video 1          
     int 10h   
     
-    mov al, 003     ; 003 la ma ascii dai diên cho food (co the thay doi ki tu nay)      
+    mov al, 003     ; 003 la ma ascii dai di?n cho food (co the thay doi ki tu nay)      
     mov     bl, 0eh ; Thuoc tinh; lower 4bits : mau cua ki tu; higher 4 bits: mau nen cua ki tu
                     ; bl luu mau cua food, 0dh dai dien cho pink trong bios color attribute
     ; Ham 09h cua ngat 10h yeu cau voi al la ki tu can ve, bl la mau cua ki tu, cx la so luong ki tu muon ve
